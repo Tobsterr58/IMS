@@ -6,11 +6,8 @@ TARGET = proj
 
 all: $(TARGET)
 
-$(TARGET): proj.o
-	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
-
-proj.o: proj.cpp
-	$(CC) $(CFLAGS) -c -o $@ $<
+$(TARGET): proj.cpp
+	$(CC) $(CFLAGS) -o $@ $< $(LIBS)
 
 clean:
-	rm -f $(TARGET) *.o
+	rm -f $(TARGET)
