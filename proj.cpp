@@ -4,8 +4,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <iostream>
+#include <iomanip>
+
 
 using namespace std;
+
+int width = 50;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// DEFINICIA KONSTANT A CASOV  ///////////////////////////////////////////
@@ -139,6 +143,30 @@ void clearStats() {
   cakanie_na_stroj_legs = 0.0;
   cakanie_na_box = 0.0;
   cakanie_na_kardio = 0.0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+void printStats() {
+  cout << "|                    STATISTIKY                   |" << endl;
+  cout << "+-------------------------------------------------+" << endl;
+  cout << fixed << setprecision(2); // Set floating-point precision to 2 decimal places
+
+  cout << "| Pocet zakaznikov                    : " << setw(width - 40) << pocet_zakaznikov << "|" << endl;
+  cout << "| Pocet nespojnych zakaznikov         : " << setw(width - 40) << nespokojny_zakaznik << "|" << endl;
+  cout << "| Pocet zakaznikov pre squash         : " << setw(width - 40) << pocet_zakaznikov_squash << "|" << endl;
+  cout << "| Pocet zakaznikov pre gym            : " << setw(width - 40) << pocet_zakaznikov_gym << "|" << endl;
+  cout << "| Cakanie na kluce od skrinky (gym)   : " << setw(width - 40) << cakanie_na_kluc_gym << "|" << endl;
+  cout << "| Cakanie na kluce od skrinky (squash): " << setw(width - 40) << cakanie_na_kluc_squash << "|" << endl;
+  cout << "| Cakanie na kurt pre squash          : " << setw(width - 40) << cakanie_na_kurt << "|" << endl;
+  cout << "| Cakanie na stroj `pull`             : " << setw(width - 40) << cakanie_na_stroj_pull << "|" << endl;
+  cout << "| Cakanie na stroj `push`             : " << setw(width - 40) << cakanie_na_stroj_push << "|" << endl;
+  cout << "| Cakanie na stroj `legs`             : " << setw(width - 40) << cakanie_na_stroj_legs << "|" << endl;
+  cout << "| Cakanie pre box                     : " << setw(width - 40) << cakanie_na_box << "|" << endl;
+  cout << "| Cakanie pre kardio                  : " << setw(width - 40) << cakanie_na_kardio << "|" << endl;
+  cout << "+-------------------------------------------------+" << endl;
+  cout << endl;
+  cout << endl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -334,49 +362,39 @@ class ClearOut : public Process {
 };
 
 int main() {
-
+  
   // Create random seed
   RandomSeed(time(NULL));
 
   for (int i = 0; i < 7; i++) {
     clearStats();
 
-    cout << "+----------------------------------------+" << endl;
-    cout << "|                 " << days[i] << endl;
-    cout << "+----------------------------------------+" << endl;
+    cout << "+-------------------------------------------------+" << endl;
+    cout << "|" << setw((width + days[i].length()) / 2) << days[i] << setw((width - days[i].length()) / 2) << "|" << endl;
+    cout << "+-------------------------------------------------+" << endl;
+    
+    Init(START, END);
+
+    // Activate the customer generator
+    (new Generator(days[i]))->Activate();
+    (new ClearOut)->Activate(END);
+
+    Run();
+
     if (i < 5) {
-      
-      Init(START, END);
-
-      // Activate the customer generator
-      (new Generator(days[i]))->Activate();
-      (new ClearOut)->Activate(END);
-
-      Run();
-
       START += WEEKDAYS;
       END += WEEKDAYS;
-      
-      cout << "Dorobil som den" << endl;
-      cout << "Pocet zakaznikov: " << pocet_zakaznikov << endl;
-
+    }
+    else if (i == 5) {
+      START += 1000;
+      END += 1000-120;
     }
     else {
-      Init(START, END);
-
-      // Activate the customer generator
-      (new Generator(days[i]))->Activate();
-      (new ClearOut)->Activate(END);
-
-      Run();
-
       START += WEEKEND;
       END += WEEKEND;
-
-      cout << "Dorobil som vikend" << endl;
-      cout << "Pocet zakaznikov: " << pocet_zakaznikov << endl;
     }
+    // Vypis statistik
+    printStats();
   }
-
   return 0;
 }
