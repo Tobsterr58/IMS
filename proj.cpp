@@ -11,6 +11,20 @@ using namespace std;
 /////////////////////////// DEFINICIA KONSTANT A CASOV  ///////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////// OPENING HOURS //////////////////////////////////////////////////
+
+int START = 0;
+int END = 900;
+#define WEEKDAYS 900
+#define WEEKEND 780
+#define WEEKDAYS_PEEKHOURS_START 420
+#define WEEKEND_PEEKHOURS_START 360
+
+// Pole pre dni v tyzdni
+string days[] = {"Pondelok", "Utorok", "Streda", "Stvrtok", "Piatok", "Sobota", "Nedela"};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 #define MIN_TIME_BOX 60
 #define MAX_TIME_BOX 90
 #define MIN_TIME_KARDIO 45
@@ -71,6 +85,7 @@ enum typeOfWait {
   };
 
 // Definicia premennych pre pocet strojov pre jednotlive cvicenia a cviky a pocet klucov
+
 int kluce_gym = 120;
 int kluce_squash = 20;
 int stroje_pull = 22;
@@ -104,6 +119,29 @@ double cakanie_na_box = 0.0;
 double cakanie_na_kardio = 0.0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+void clearStats() {
+  pocet_zakaznikov = 0;
+  pocet_zakaznikov_squash = 0;
+  pocet_zakaznikov_gym = 0;
+  pocet_zakaznikov_box = 0;
+  pocet_zakaznikov_kardio = 0;
+  pocet_zakaznikov_legs = 0;
+  pocet_zakaznikov_pull = 0;
+  pocet_zakaznikov_push = 0;
+  customer_id = 0;
+  nespokojny_zakaznik = 0;
+  cakanie_na_kurt = 0.0;
+  cakanie_na_kluc_gym = 0.0;
+  cakanie_na_kluc_squash = 0.0;
+  cakanie_na_stroj_pull = 0.0;
+  cakanie_na_stroj_push = 0.0;
+  cakanie_na_stroj_legs = 0.0;
+  cakanie_na_box = 0.0;
+  cakanie_na_kardio = 0.0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// DEFINICIA STOROV  /////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -116,6 +154,7 @@ Store LEGS_STROJE ("Stroje na legs", stroje_legs);
 Store BOX_STROJE ("Stroje na box", box_room);
 Store KARDIO_STROJE ("Stroje na kardio", kardio_stroje);
 Store SQUASH_KURTY ("Kurty na squash", squash_kurt);
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 class Timeout : public Event {
@@ -156,7 +195,7 @@ class Customer : public Process {
   int ID;
   public :
   Customer(int ID) : Process() { this->ID = ID; }
-  void Behavior() {               
+  void Behavior() {              
     Prichod = Time; // Cas prichodu zakaznika
     pocet_zakaznikov++;
     Event *timeout;
@@ -200,7 +239,7 @@ class Customer : public Process {
           double pomocnaLegs = Time;
           Enter(LEGS_STROJE, 1); // Ziskanie stroja na legs
           cakanie_na_stroj_legs += Time - pomocnaLegs;
-          Wait(Uniform(LEGS_EXERCISES[i]-2, LEGS_EXERCISES[i]+8)); // Prebieha cvicenie
+          Wait(Uniform(LEGS_EXERCISES[i]-1, LEGS_EXERCISES[i]+4)); // Prebieha cvicenie
           Leave(LEGS_STROJE, 1); // Vratenie stroja na legs
         }
         pocet_zakaznikov_legs++;
@@ -244,20 +283,53 @@ class Customer : public Process {
       Wait(Uniform(CHANGE_ROOM_AFTER_TRAINING, SHOWER_TIME_AFTER_TRAINING)); // Prezliekanie sa
       Leave(SQUASH_KLUCE, 2); // Vratenie klucov na squash
     }
-
   }  
 };
 
 class Generator : public Event {
+  string day;
+  public:
+  Generator(string day) : day(day) {}
   void Behavior() {     
     customer_id++;
     (new Customer(customer_id))->Activate();   // new customer
-    if(Time < 420) { // 7:00 - 14:00 chodi menej zakaznikov kvôli škole, práci a pod.
-      Activate(Time+Exponential (4));
+    if (day == "Pondelok" || day == "Utorok" || day == "Streda" || day == "Stvrtok" || day == "Piatok") {
+      if (Time < END-60 ) { // 60 min pred koncom otvaracich hodin uz neprichadzaju zakaznici
+        if(Time < START+WEEKDAYS_PEEKHOURS_START) { // do 14:00 chodi menej zakaznikov kvôli škole, práci a pod.
+          Activate(Time+Exponential (4));
+        }
+        else { // 14:00 - Zaverečná chodi viac zakaznikov
+          Activate(Time+Exponential (1));
+        }
+      }
     }
-    else { // 14:00 - 22:00 chodi viac zakaznikov
-      Activate(Time+Exponential (1));
+    else {
+
+      // Cez vikend chodi menej zakaznikov preto sa meni cas medzi prichodmi zakaznikov
+
+      if (Time < END-60 ) { // 60 min pred koncom otvaracich hodin uz neprichadzaju zakaznici
+        if(Time < START+WEEKEND_PEEKHOURS_START) { // do 14:00 chodi menej zakaznikov pretoze spia dlhsie, je vikend a pod.
+          Activate(Time+Exponential (5));
+        }
+        else { // 14:00 - Zaverečná chodi viac zakaznikov
+          Activate(Time+Exponential (1.5));
+        }
+      }
     }
+      
+  }
+};
+
+class ClearOut : public Process {
+  void Behavior() { // V case zatvorenia sa vsetci zakaznici vyradia a odovzdaju svoje kluce a stroje
+    Leave(SQUASH_KLUCE, SQUASH_KLUCE.Used());
+    Leave(PULL_STROJE, PULL_STROJE.Used());
+    Leave(PUSH_STROJE, PUSH_STROJE.Used());
+    Leave(LEGS_STROJE, LEGS_STROJE.Used());
+    Leave(BOX_STROJE, BOX_STROJE.Used());
+    Leave(KARDIO_STROJE, KARDIO_STROJE.Used());
+    Leave(SQUASH_KURTY, SQUASH_KURTY.Used());
+    Leave(GYM_KLUCE, GYM_KLUCE.Used());
   }
 };
 
@@ -266,33 +338,45 @@ int main() {
   // Create random seed
   RandomSeed(time(NULL));
 
-  // Initialize the simulation
-  Init(0, 900);
+  for (int i = 0; i < 7; i++) {
+    clearStats();
 
-  // Activate the customer generator
-  (new Generator)->Activate();
+    cout << "+----------------------------------------+" << endl;
+    cout << "|                 " << days[i] << endl;
+    cout << "+----------------------------------------+" << endl;
+    if (i < 5) {
+      
+      Init(START, END);
 
-  // Run the simulation
-  Run();
+      // Activate the customer generator
+      (new Generator(days[i]))->Activate();
+      (new ClearOut)->Activate(END);
 
-  // Print the results
-  cout << "Pocet zakaznikov: " << pocet_zakaznikov << endl;
-  cout << "Pocet zakaznikov gym: " << pocet_zakaznikov_gym << endl;
-  cout << "Pocet zakaznikov squash: " << pocet_zakaznikov_squash << endl;
-  cout << "Pocet nespokojnych zakaznikov: " << nespokojny_zakaznik << endl;
-  // cout << "Pocet zakaznikov na pull: " << pocet_zakaznikov_pull << endl;
-  // cout << "Pocet zakaznikov na push: " << pocet_zakaznikov_push << endl;
-  // cout << "Pocet zakaznikov na legs: " << pocet_zakaznikov_legs << endl;
-  // cout << "Pocet zakaznikov na box: " << pocet_zakaznikov_box << endl;
-  // cout << "Pocet zakaznikov na kardio: " << pocet_zakaznikov_kardio << endl;
-  cout << "Zakaznici stravili cakanim na kurt: " << cakanie_na_kurt << endl;
-  cout << "Zakaznici stravili cakanim na kluc gym: " << cakanie_na_kluc_gym << endl;
-  cout << "Zakaznici stravili cakanim na kluc squash: " << cakanie_na_kluc_squash << endl;
-  cout << "Zakaznici stravili cakanim na stroj pull: " << cakanie_na_stroj_pull << endl;
-  cout << "Zakaznici stravili cakanim na stroj push: " << cakanie_na_stroj_push << endl;
-  cout << "Zakaznici stravili cakanim na stroj legs: " << cakanie_na_stroj_legs << endl;
-  cout << "Zakaznici stravili cakanim na box: " << cakanie_na_box << endl;
-  cout << "Zakaznici stravili cakanim na kardio: " << cakanie_na_kardio << endl;
+      Run();
+
+      START += WEEKDAYS;
+      END += WEEKDAYS;
+      
+      cout << "Dorobil som den" << endl;
+      cout << "Pocet zakaznikov: " << pocet_zakaznikov << endl;
+
+    }
+    else {
+      Init(START, END);
+
+      // Activate the customer generator
+      (new Generator(days[i]))->Activate();
+      (new ClearOut)->Activate(END);
+
+      Run();
+
+      START += WEEKEND;
+      END += WEEKEND;
+
+      cout << "Dorobil som vikend" << endl;
+      cout << "Pocet zakaznikov: " << pocet_zakaznikov << endl;
+    }
+  }
 
   return 0;
 }
