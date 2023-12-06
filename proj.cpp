@@ -80,11 +80,6 @@ int PULL_EXERCISES[5] = {PULL_EXERCISE_1_AVERAGE, PULL_EXERCISE_2_AVERAGE, PULL_
 enum typeOfWait {
   GymKeys,
   SquashKeys,
-  Box,
-  Kardio,
-  Legs,
-  Pull,
-  Push,
   Court,
   };
 
@@ -121,6 +116,33 @@ double cakanie_na_stroj_push = 0.0;
 double cakanie_na_stroj_legs = 0.0;
 double cakanie_na_box = 0.0;
 double cakanie_na_kardio = 0.0;
+
+////////////////////////////////////////////////////////////////////
+
+////////////////////////////// WEEK REPORT STATS //////////////////////////////////////////////////
+
+int celkovy_pocet_zakaznikov = 0;
+int celkovy_pocet_zakaznikov_squash = 0;
+int celkovy_pocet_zakaznikov_gym = 0;
+int celkovy_pocet_zakaznikov_box = 0;
+int celkovy_pocet_zakaznikov_kardio = 0;
+int celkovy_pocet_zakaznikov_legs = 0;
+int celkovy_pocet_zakaznikov_pull = 0;
+int celkovy_pocet_zakaznikov_push = 0;
+int celkovy_pocet_nespokojnych_zakaznikov = 0;
+
+double celkovy_cas_cakania_na_kurt = 0.0;
+double celkovy_cas_cakania_na_kluc_gym = 0.0;
+double celkovy_cas_cakania_na_kluc_squash = 0.0;
+double celkovy_cas_cakania_na_stroj_pull = 0.0;
+double celkovy_cas_cakania_na_stroj_push = 0.0;
+double celkovy_cas_cakania_na_stroj_legs = 0.0;
+double celkovy_cas_cakania_na_box = 0.0;
+double celkovy_cas_cakania_na_kardio = 0.0;
+
+int nespokojny_zakaznici_kluce_gym = 0;
+int nespokojny_zakaznici_kluce_squash = 0;
+int nespokojny_zakaznici_kurt = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -170,6 +192,73 @@ void printStats() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+void storeStats() {
+  celkovy_pocet_zakaznikov += pocet_zakaznikov;
+  celkovy_pocet_zakaznikov_squash += pocet_zakaznikov_squash;
+  celkovy_pocet_zakaznikov_gym += pocet_zakaznikov_gym;
+  celkovy_pocet_zakaznikov_box += pocet_zakaznikov_box;
+  celkovy_pocet_zakaznikov_kardio += pocet_zakaznikov_kardio;
+  celkovy_pocet_zakaznikov_legs += pocet_zakaznikov_legs;
+  celkovy_pocet_zakaznikov_pull += pocet_zakaznikov_pull;
+  celkovy_pocet_zakaznikov_push += pocet_zakaznikov_push;
+  celkovy_pocet_nespokojnych_zakaznikov += nespokojny_zakaznik;
+  celkovy_cas_cakania_na_kurt += cakanie_na_kurt;
+  celkovy_cas_cakania_na_kluc_gym += cakanie_na_kluc_gym;
+  celkovy_cas_cakania_na_kluc_squash += cakanie_na_kluc_squash;
+  celkovy_cas_cakania_na_stroj_pull += cakanie_na_stroj_pull;
+  celkovy_cas_cakania_na_stroj_push += cakanie_na_stroj_push;
+  celkovy_cas_cakania_na_stroj_legs += cakanie_na_stroj_legs;
+  celkovy_cas_cakania_na_box += cakanie_na_box;
+  celkovy_cas_cakania_na_kardio += cakanie_na_kardio;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+int week_width = 80; // Set width for the printWeekReport function
+
+void printWeekReport() {
+  cout << "+--------------------------------------------------------------------------------+" << endl;
+  cout << "|                                WEEK REPORT                                     |" << endl;
+  cout << "+--------------------------------------------------------------------------------+" << endl;
+  cout << fixed << setprecision(2); // Set floating-point precision to 2 decimal places
+
+  auto printRow = [&](const string& label, double value) {
+    cout << "| " << left << setw(60) << label << ": " << setw(week_width - 64) << value << " |" << endl;
+  };
+
+  auto printSeparator = [&]() {
+    cout << "+--------------------------------------------------------------------------------+" << endl;
+  };
+
+  printRow("Celkovy pocet zakaznikov", celkovy_pocet_zakaznikov);
+  printRow("Celkovy pocet nespojnych zakaznikov", celkovy_pocet_nespokojnych_zakaznikov);
+  printRow("Celkovy pocet zakaznikov pre squash", celkovy_pocet_zakaznikov_squash);
+  printRow("Celkovy pocet zakaznikov pre gym", celkovy_pocet_zakaznikov_gym);
+  printSeparator();
+  printRow("Priemerny cas cakania na kluce gym (min)", celkovy_cas_cakania_na_kluc_gym / celkovy_pocet_zakaznikov_gym);
+  printRow("Priemerny cas cakania na kluce squash (min)", celkovy_cas_cakania_na_kluc_squash / celkovy_pocet_zakaznikov_squash);
+  printRow("Priemerny cas cakania na kurt (min)", celkovy_cas_cakania_na_kurt / celkovy_pocet_zakaznikov_squash);
+  printRow("Priemerny cas cakania na stroj `pull` (min)", celkovy_cas_cakania_na_stroj_pull / celkovy_pocet_zakaznikov_pull);
+  printRow("Priemerny cas cakania na stroj `push` (min)", celkovy_cas_cakania_na_stroj_push / celkovy_pocet_zakaznikov_push);
+  printRow("Priemerny cas cakania na stroj `legs` (min)", celkovy_cas_cakania_na_stroj_legs / celkovy_pocet_zakaznikov_legs);
+  printRow("Priemerny cas cakania pre box (min)", celkovy_cas_cakania_na_box / celkovy_pocet_zakaznikov_box);
+  printRow("Priemerny cas cakania pre kardio (min)", celkovy_cas_cakania_na_kardio / celkovy_pocet_zakaznikov_kardio);
+  printSeparator();
+  printRow("Nespokojni zakaznici, ktori odisli pretoze kluce gym", nespokojny_zakaznici_kluce_gym);
+  printRow("Nespokojni zakaznici, ktori odisli pretoze kluce squash", nespokojny_zakaznici_kluce_squash);
+  printRow("Nespokojni zakaznici, ktori odisli pretoze kurt na squash", nespokojny_zakaznici_kurt);
+  printSeparator();
+  printRow("Celkovy pocet zakaznikov, ktori cvicili 'pull'", celkovy_pocet_zakaznikov_pull);
+  printRow("Celkovy pocet zakaznikov, ktori cvicili 'push'", celkovy_pocet_zakaznikov_push);
+  printRow("Celkovy pocet zakaznikov, ktori cvicili 'legs'", celkovy_pocet_zakaznikov_legs);
+  printRow("Celkovy pocet zakaznikov, ktori cvicili 'box'", celkovy_pocet_zakaznikov_box);
+  printRow("Celkovy pocet zakaznikov, ktori cvicili 'kardio'", celkovy_pocet_zakaznikov_kardio);
+  printSeparator();
+  cout << endl;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// DEFINICIA STOROV  /////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -201,16 +290,16 @@ class Timeout : public Event {
       }
       delete ptr;        // likvidace
       if (type == GymKeys) {
-        cakanie_na_kluc_gym += NESPOKOJNY_ZAKAZNIK_GYM; 
-        cout << "Zakaznik " << ID << " odisiel nespokojny lebo kluce gym" << endl;
+        cakanie_na_kluc_gym += NESPOKOJNY_ZAKAZNIK_GYM;
+        nespokojny_zakaznici_kluce_gym++;
       }
       else if (type == SquashKeys) {
         cakanie_na_kluc_squash += NESPOKOJNY_ZAKAZNIK_SQUASH;
-        cout << "Zakaznik " << ID << " odisiel nespokojny lebo kluce squash" << endl;
+        nespokojny_zakaznici_kluce_squash++;
       }
       else if (type == Court) {
         cakanie_na_kurt = cakanie_na_kurt + CAKANIE_NA_KURT;
-        cout << "Zakaznik " << ID << " odisiel nespokojny lebo cakal na kurt pre squash moc dlho" << endl;
+        nespokojny_zakaznici_kurt++;
       }
 
       nespokojny_zakaznik++;          // počitadlo
@@ -336,7 +425,7 @@ class Generator : public Event {
       // Cez vikend chodi menej zakaznikov preto sa meni cas medzi prichodmi zakaznikov
 
       if (Time < END-60 ) { // 60 min pred koncom otvaracich hodin uz neprichadzaju zakaznici
-        if(Time < START+WEEKEND_PEEKHOURS_START) { // do 14:00 chodi menej zakaznikov pretoze spia dlhsie, je vikend a pod.
+        if(Time < START+WEEKEND_PEEKHOURS_START) { // do 14:00 chodi menej zakaznikov pretoze spia dlhsie, hobbies, je vikend a pod.
           Activate(Time+Exponential (5));
         }
         else { // 14:00 - Zaverečná chodi viac zakaznikov
@@ -367,6 +456,7 @@ int main() {
   RandomSeed(time(NULL));
 
   for (int i = 0; i < 7; i++) {
+    storeStats();
     clearStats();
 
     cout << "+-------------------------------------------------+" << endl;
@@ -385,9 +475,9 @@ int main() {
       START += WEEKDAYS;
       END += WEEKDAYS;
     }
-    else if (i == 5) {
+    else if (i == 5) { // Sobota + Nedeľa aby sa zmenil čas medzi prichodmi zakaznikov na vikend
       START += 1000;
-      END += 1000-120;
+      END += 1000-120; // -120 aby sa prevadzka obmedzila iba na 13 hodin, pretoze vikend je otvoreny od 8:00 do 21:00
     }
     else {
       START += WEEKEND;
@@ -396,5 +486,6 @@ int main() {
     // Vypis statistik
     printStats();
   }
+  printWeekReport();
   return 0;
 }
