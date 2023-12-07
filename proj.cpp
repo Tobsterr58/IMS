@@ -1,14 +1,14 @@
-/***************************
+/************************************************************************
  *  IMS - Projekt
  *  VUT FIT 2023/2024
  *  7.12.2023
- *  Autory: 
+ *  Autors:
  *  Tobiáš Štec (xstect00)
  *  Viktor Hančovský (xhanco00)
  * 
  *  Model prevádzky fitness centra (Box, Squash, Fitness) v Simlib/C++
  * 
-***************************/
+************************************************************************/
 
 #include "simlib.h"
 
@@ -21,7 +21,9 @@
 
 using namespace std;
 
+// Definicia sirky pre vypis statistik
 int width = 50;
+int week_width = 80;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// DEFINICIA KONSTANT A CASOV  ///////////////////////////////////////////
@@ -33,8 +35,8 @@ int START = 0;
 int END = 900;
 #define WEEKDAYS 900
 #define WEEKEND 780
-#define WEEKDAYS_PEEKHOURS_START 420
-#define WEEKEND_PEEKHOURS_START 360
+#define WEEKDAYS_PEAKHOURS_START 420
+#define WEEKEND_PEAKHOURS_START 360
 
 // Pole pre dni v tyzdni
 string days[] = {"Pondelok", "Utorok", "Streda", "Stvrtok", "Piatok", "Sobota", "Nedela"};
@@ -95,8 +97,7 @@ enum typeOfWait {
   Court,
   };
 
-// Definicia premennych pre pocet strojov pre jednotlive cvicenia a cviky a pocet klucov
-
+// Definicia premennych pre pocet strojov pre jednotlive cvicenia a cviky a pocet klucov na squash a gym
 int kluce_gym = 110;
 int kluce_squash = 20;
 int stroje_pull = 22;
@@ -184,7 +185,7 @@ void clearStats() {
 void printStats() {
   cout << "|                    STATISTIKY                   |" << endl;
   cout << "+-------------------------------------------------+" << endl;
-  cout << fixed << setprecision(2); // Set floating-point precision to 2 decimal places
+  cout << fixed << setprecision(2);
 
   cout << "| Pocet zakaznikov                    : " << setw(width - 40) << pocet_zakaznikov << "|" << endl;
   cout << "| Pocet nespokojnych zakaznikov       : " << setw(width - 40) << nespokojny_zakaznik << "|" << endl;
@@ -227,13 +228,11 @@ void storeStats() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-int week_width = 80; // Set width for the printWeekReport function
-
 void printWeekReport() {
   cout << "+--------------------------------------------------------------------------------+" << endl;
   cout << "|                                WEEK REPORT                                     |" << endl;
   cout << "+--------------------------------------------------------------------------------+" << endl;
-  cout << fixed << setprecision(2); // Set floating-point precision to 2 decimal places
+  cout << fixed << setprecision(2); 
 
   auto printRow = [&](const string& label, int value) {
     cout << "| " << left << setw(60) << label << ": " << setw(week_width - 64) << value << " |" << endl;
@@ -345,9 +344,9 @@ class Customer : public Process {
 
       Wait(Uniform(BEFORE_CHANGE_ROOM_TIME_MIN, BEFORE_CHANGE_ROOM_TIME_MAX)); // Prezliekanie sa
       vyber_cvicenia = Random();
-      // 25% zakaznikov cvici `Pull` cviky, 25% `Push` cviky, 31% `Legs` cviky, 6% `Box` cviky, 14% `Kardio` cviky
+      // 25% zakaznikov cvici `Pull` cviky, 25% `Push` cviky, 30% `Legs` cviky, 6% `Box`, 14% `Kardio`
       if (vyber_cvicenia < 0.25) {
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 5; i++) { // Zakaznik cvici dany pocet cvikov pre dany typ cvicenia
           double pomocnaPull = Time;
           Enter(PULL_STROJE, 1); // Ziskanie stroja na pull
           cakanie_na_stroj_pull += Time - pomocnaPull;
@@ -427,7 +426,7 @@ class Generator : public Event {
     (new Customer(customer_id))->Activate();   // new customer
     if (day == "Pondelok" || day == "Utorok" || day == "Streda" || day == "Stvrtok" || day == "Piatok") {
       if (Time < END-60 ) { // 60 min pred koncom otvaracich hodin uz neprichadzaju zakaznici
-        if(Time < START+WEEKDAYS_PEEKHOURS_START) { // do 14:00 chodi menej zakaznikov kvôli škole, práci a pod.
+        if(Time < START+WEEKDAYS_PEAKHOURS_START) { // do 14:00 chodi menej zakaznikov kvôli škole, práci a pod.
           Activate(Time+Exponential (4));
         }
         else { // 14:00 - Zaverečná chodi viac zakaznikov
@@ -438,9 +437,8 @@ class Generator : public Event {
     else {
 
       // Cez vikend chodi menej zakaznikov preto sa meni cas medzi prichodmi zakaznikov
-
       if (Time < END-60 ) { // 60 min pred koncom otvaracich hodin uz neprichadzaju zakaznici
-        if(Time < START+WEEKEND_PEEKHOURS_START) { // do 14:00 chodi menej zakaznikov pretoze spia dlhsie, hobbies, je vikend a pod.
+        if(Time < START+WEEKEND_PEAKHOURS_START) { // do 14:00 chodi menej zakaznikov pretoze spia dlhsie, hobbies, je vikend a pod.
           Activate(Time+Exponential (5));
         }
         else { // 14:00 - Zaverečná chodi viac zakaznikov
@@ -448,7 +446,6 @@ class Generator : public Event {
         }
       }
     }
-      
   }
 };
 
@@ -467,24 +464,23 @@ class ClearOut : public Process {
 
 int main() {
   
-  // Create random seed
   RandomSeed(time(NULL));
 
   for (int i = 0; i < 7; i++) {
     storeStats();
     clearStats();
 
+    // Vypis dna v tyzdni
     cout << "+-------------------------------------------------+" << endl;
     cout << "|" << setw((width + days[i].length()) / 2) << days[i] << setw((width - days[i].length()) / 2) << "|" << endl;
     cout << "+-------------------------------------------------+" << endl;
     
     Init(START, END);
 
-    // Activate the customer generator
     (new Generator(days[i]))->Activate();
     (new ClearOut)->Activate(END);
 
-    Run();
+    Run(); // spustenie simulacie
 
     if (i < 5) {
       START += WEEKDAYS;
@@ -501,7 +497,10 @@ int main() {
     // Vypis statistik
     printStats();
   }
-  storeStats();
-  printWeekReport();
+
+  storeStats();  // zapocitanie štatistík za posledný deň
+
+  printWeekReport(); // vypis štatistík za celý týždeň
+
   return 0;
 }
