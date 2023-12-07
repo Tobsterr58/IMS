@@ -1,3 +1,15 @@
+/***************************
+ *  IMS - Projekt
+ *  VUT FIT 2023/2024
+ *  7.12.2023
+ *  Autory: 
+ *  Tobiáš Štec (xstect00)
+ *  Viktor Hančovský (xhanco00)
+ * 
+ *  Model prevádzky fitness centra (Box, Squash, Fitness) v Simlib/C++
+ * 
+***************************/
+
 #include "simlib.h"
 
 #include <stdio.h>
@@ -40,7 +52,7 @@ string days[] = {"Pondelok", "Utorok", "Streda", "Stvrtok", "Piatok", "Sobota", 
 #define SHOWER_TIME_AFTER_TRAINING 20
 #define NESPOKOJNY_ZAKAZNIK_GYM 20
 #define NESPOKOJNY_ZAKAZNIK_SQUASH 10
-#define CAKANIE_NA_KURT 30
+#define CAKANIE_NA_KURT 35
 
 //////////////////////////////// LEGS EXERCISES //////////////////////////////////////////////////
 
@@ -85,12 +97,12 @@ enum typeOfWait {
 
 // Definicia premennych pre pocet strojov pre jednotlive cvicenia a cviky a pocet klucov
 
-int kluce_gym = 120;
+int kluce_gym = 110;
 int kluce_squash = 20;
 int stroje_pull = 22;
 int stroje_push = 22;
-int stroje_legs = 34;
-int box_room = 7;
+int stroje_legs = 31;
+int box_room = 8;
 int kardio_stroje = 15;
 int squash_kurt = 5;
 
@@ -175,7 +187,7 @@ void printStats() {
   cout << fixed << setprecision(2); // Set floating-point precision to 2 decimal places
 
   cout << "| Pocet zakaznikov                    : " << setw(width - 40) << pocet_zakaznikov << "|" << endl;
-  cout << "| Pocet nespojnych zakaznikov         : " << setw(width - 40) << nespokojny_zakaznik << "|" << endl;
+  cout << "| Pocet nespokojnych zakaznikov       : " << setw(width - 40) << nespokojny_zakaznik << "|" << endl;
   cout << "| Pocet zakaznikov pre squash         : " << setw(width - 40) << pocet_zakaznikov_squash << "|" << endl;
   cout << "| Pocet zakaznikov pre gym            : " << setw(width - 40) << pocet_zakaznikov_gym << "|" << endl;
   cout << "| Cakanie na kluce od skrinky (gym)   : " << setw(width - 40) << cakanie_na_kluc_gym << "|" << endl;
@@ -223,7 +235,11 @@ void printWeekReport() {
   cout << "+--------------------------------------------------------------------------------+" << endl;
   cout << fixed << setprecision(2); // Set floating-point precision to 2 decimal places
 
-  auto printRow = [&](const string& label, double value) {
+  auto printRow = [&](const string& label, int value) {
+    cout << "| " << left << setw(60) << label << ": " << setw(week_width - 64) << value << " |" << endl;
+  };
+
+  auto printRowDouble = [&](const string& label, double value) {
     cout << "| " << left << setw(60) << label << ": " << setw(week_width - 64) << value << " |" << endl;
   };
 
@@ -232,18 +248,18 @@ void printWeekReport() {
   };
 
   printRow("Celkovy pocet zakaznikov", celkovy_pocet_zakaznikov);
-  printRow("Celkovy pocet nespojnych zakaznikov", celkovy_pocet_nespokojnych_zakaznikov);
+  printRow("Celkovy pocet nespokojnych zakaznikov", celkovy_pocet_nespokojnych_zakaznikov);
   printRow("Celkovy pocet zakaznikov pre squash", celkovy_pocet_zakaznikov_squash);
   printRow("Celkovy pocet zakaznikov pre gym", celkovy_pocet_zakaznikov_gym);
   printSeparator();
-  printRow("Priemerny cas cakania na kluce gym (min)", celkovy_cas_cakania_na_kluc_gym / celkovy_pocet_zakaznikov_gym);
-  printRow("Priemerny cas cakania na kluce squash (min)", celkovy_cas_cakania_na_kluc_squash / celkovy_pocet_zakaznikov_squash);
-  printRow("Priemerny cas cakania na kurt (min)", celkovy_cas_cakania_na_kurt / celkovy_pocet_zakaznikov_squash);
-  printRow("Priemerny cas cakania na stroj `pull` (min)", celkovy_cas_cakania_na_stroj_pull / celkovy_pocet_zakaznikov_pull);
-  printRow("Priemerny cas cakania na stroj `push` (min)", celkovy_cas_cakania_na_stroj_push / celkovy_pocet_zakaznikov_push);
-  printRow("Priemerny cas cakania na stroj `legs` (min)", celkovy_cas_cakania_na_stroj_legs / celkovy_pocet_zakaznikov_legs);
-  printRow("Priemerny cas cakania pre box (min)", celkovy_cas_cakania_na_box / celkovy_pocet_zakaznikov_box);
-  printRow("Priemerny cas cakania pre kardio (min)", celkovy_cas_cakania_na_kardio / celkovy_pocet_zakaznikov_kardio);
+  printRowDouble("Priemerny cas cakania na kluce gym (min)", celkovy_cas_cakania_na_kluc_gym / celkovy_pocet_zakaznikov_gym);
+  printRowDouble("Priemerny cas cakania na kluce squash (min)", celkovy_cas_cakania_na_kluc_squash / celkovy_pocet_zakaznikov_squash);
+  printRowDouble("Priemerny cas cakania na kurt (min)", celkovy_cas_cakania_na_kurt / celkovy_pocet_zakaznikov_squash);
+  printRowDouble("Priemerny cas cakania na stroj `pull` (min)", celkovy_cas_cakania_na_stroj_pull / celkovy_pocet_zakaznikov_pull);
+  printRowDouble("Priemerny cas cakania na stroj `push` (min)", celkovy_cas_cakania_na_stroj_push / celkovy_pocet_zakaznikov_push);
+  printRowDouble("Priemerny cas cakania na stroj `legs` (min)", celkovy_cas_cakania_na_stroj_legs / celkovy_pocet_zakaznikov_legs);
+  printRowDouble("Priemerny cas cakania pre box (min)", celkovy_cas_cakania_na_box / celkovy_pocet_zakaznikov_box);
+  printRowDouble("Priemerny cas cakania pre kardio (min)", celkovy_cas_cakania_na_kardio / celkovy_pocet_zakaznikov_kardio);
   printSeparator();
   printRow("Nespokojni zakaznici, ktori odisli pretoze kluce gym", nespokojny_zakaznici_kluce_gym);
   printRow("Nespokojni zakaznici, ktori odisli pretoze kluce squash", nespokojny_zakaznici_kluce_squash);
@@ -255,7 +271,6 @@ void printWeekReport() {
   printRow("Celkovy pocet zakaznikov, ktori cvicili 'box'", celkovy_pocet_zakaznikov_box);
   printRow("Celkovy pocet zakaznikov, ktori cvicili 'kardio'", celkovy_pocet_zakaznikov_kardio);
   printSeparator();
-  cout << endl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -486,6 +501,7 @@ int main() {
     // Vypis statistik
     printStats();
   }
+  storeStats();
   printWeekReport();
   return 0;
 }
