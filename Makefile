@@ -11,3 +11,6 @@ $(TARGET): proj.cpp
 
 clean:
 	rm -f $(TARGET)
+
+run:
+	./$(TARGET)
